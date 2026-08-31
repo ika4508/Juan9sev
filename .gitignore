@@ -1,0 +1,40 @@
+# Gradle
+.gradle/
+build/
+out/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Java
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# Paper test server
+run/
+server/
+plugins/
+logs/
+world/
+world_nether/
+world_the_end/
+eula.txt
+server.properties
+usercache.json
+ops.json
+whitelist.json
+banned-*.json
+
+# Operating system
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local environment files
+.env
+.env.*
+!.env.example
