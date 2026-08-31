@@ -17,6 +17,14 @@ java {
 }
 
 tasks {
+    register<Zip>("buildResourcePack") {
+        group = "distribution"
+        description = "Builds the Juan9 Minecraft resource pack ZIP."
+        from(layout.projectDirectory.dir("resourcepack"))
+        archiveFileName.set("Juan9-ResourcePack-${project.version}.zip")
+        destinationDirectory.set(layout.buildDirectory.dir("distributions"))
+    }
+
     runServer {
         // Configure the Minecraft version for our task.
         // This is the only required configuration besides applying the plugin.

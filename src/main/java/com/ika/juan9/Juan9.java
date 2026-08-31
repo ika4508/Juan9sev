@@ -16,6 +16,7 @@ public final class Juan9 extends JavaPlugin {
         StatListener statListener = new StatListener(this, statManager);
         BlacksmithListener blacksmithListener = new BlacksmithListener(this);
         SpecialItemListener specialItemListener = new SpecialItemListener(this);
+        CurrencyItemFactory currencyItemFactory = new CurrencyItemFactory(this);
 
         // 수정된 부분
         MonsterExpListener monsterExpListener =
@@ -51,7 +52,12 @@ public final class Juan9 extends JavaPlugin {
         );
 
         getServer().getPluginManager().registerEvents(
-                new BankGuiListener(this),
+                new BankGuiListener(this, currencyItemFactory),
+                this
+        );
+
+        getServer().getPluginManager().registerEvents(
+                new CurrencyMigrationListener(currencyItemFactory),
                 this
         );
 
@@ -128,7 +134,7 @@ public final class Juan9 extends JavaPlugin {
 
         getCommand("cash")
                 .setExecutor(
-                        new CashCommand(this)
+                        new CashCommand(currencyItemFactory)
                 );
 
         getCommand("spawnbank")

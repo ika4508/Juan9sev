@@ -1,0 +1,27 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "juan9:cash_10",
+        "model": {
+          "type": "minecraft:model",
+          "model": "juan9:item/cash_10"
+        }
+      },
+      {
+        "when": "juan9:cash_100",
+        "model": {
+          "type": "minecraft:model",
+          "model": "juan9:item/cash_100"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/arms_up_pottery_sherd"
+    }
+  }
+}

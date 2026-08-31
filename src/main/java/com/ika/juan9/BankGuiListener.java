@@ -25,11 +25,13 @@ public class BankGuiListener implements Listener {
 
     private final Juan9 plugin;
     private final NamespacedKey cashKey;
+    private final CurrencyItemFactory currencyItemFactory;
     private final DecimalFormat df = new DecimalFormat("#,###");
     private static final String GUI_TITLE = "§8[ 중앙 은행 ATM ]";
 
-    public BankGuiListener(Juan9 plugin) {
+    public BankGuiListener(Juan9 plugin, CurrencyItemFactory currencyItemFactory) {
         this.plugin = plugin;
+        this.currencyItemFactory = currencyItemFactory;
         this.cashKey = new NamespacedKey(plugin, "cash_amount");
     }
 
@@ -40,22 +42,6 @@ public class BankGuiListener implements Listener {
     private void setBalance(Player player, int amount) {
         plugin.getConfig().set("bank." + player.getUniqueId(), amount);
         plugin.saveConfig();
-    }
-
-    // 공식 화폐 아이템 생성 (도자기 조각)
-    private ItemStack createCashItem(int amount, int count) {
-        ItemStack cash = new ItemStack(Material.ARMS_UP_POTTERY_SHERD, count);
-        ItemMeta meta = cash.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName("§6§l[공식 화폐] §e" + df.format(amount) + " GOLD");
-            List<String> lore = new ArrayList<>();
-            lore.add("§7서버 공식 인증 실물 화폐입니다.");
-            lore.add("§8(모루로 이름을 변경해도 위조할 수 없습니다.)");
-            meta.setLore(lore);
-            meta.getPersistentDataContainer().set(cashKey, PersistentDataType.INTEGER, amount);
-            cash.setItemMeta(meta);
-        }
-        return cash;
     }
 
     // 은행 GUI 열기
@@ -73,7 +59,7 @@ public class BankGuiListener implements Listener {
             inv.setItem(i, filler);
         }
 
-        // 2. [슬롯 11] 현금 입금 버튼 (호퍼)
+        // 2. [슬롯 10] 현금 입금 버튼 (호퍼)
         ItemStack depositBtn = new ItemStack(Material.HOPPER);
         ItemMeta depositMeta = depositBtn.getItemMeta();
         if (depositMeta != null) {
@@ -86,9 +72,9 @@ public class BankGuiListener implements Listener {
             depositMeta.setLore(lore);
             depositBtn.setItemMeta(depositMeta);
         }
-        inv.setItem(11, depositBtn);
+        inv.setItem(10, depositBtn);
 
-        // 3. [슬롯 13] 계좌 잔액 현황 (금괴)
+        // 3. [슬롯 12] 계좌 잔액 현황 (금괴)
         int balance = getBalance(player);
         ItemStack infoBtn = new ItemStack(Material.GOLD_INGOT);
         ItemMeta infoMeta = infoBtn.getItemMeta();
@@ -100,12 +86,13 @@ public class BankGuiListener implements Listener {
             infoMeta.setLore(lore);
             infoBtn.setItemMeta(infoMeta);
         }
-        inv.setItem(13, infoBtn);
+        inv.setItem(12, infoBtn);
 
-        // 4. [슬롯 15, 16, 17] 출금 버튼 (1 GOLD / 10 GOLD / 100 GOLD)
-        inv.setItem(15, createWithdrawButton(1));
-        inv.setItem(16, createWithdrawButton(10));
-        inv.setItem(17, createWithdrawButton(100));
+        // 4. [슬롯 14~17] 권종별 출금 버튼
+        inv.setItem(14, createWithdrawButton(10));
+        inv.setItem(15, createWithdrawButton(100));
+        inv.setItem(16, createWithdrawButton(1_000));
+        inv.setItem(17, createWithdrawButton(10_000));
 
         player.openInventory(inv);
     }
@@ -149,8 +136,8 @@ public class BankGuiListener implements Listener {
         Player player = (Player) event.getWhoClicked();
         int slot = event.getRawSlot();
 
-        // 1. 현금 전액 입금 (슬롯 11)
-        if (slot == 11) {
+        // 1. 현금 전액 입금 (슬롯 10)
+        if (slot == 10) {
             int totalDeposited = 0;
             ItemStack[] contents = player.getInventory().getContents();
 
@@ -180,11 +167,12 @@ public class BankGuiListener implements Listener {
             return;
         }
 
-        // 2. 출금 버튼 처리 (슬롯 15: 1 GOLD, 슬롯 16: 10 GOLD, 슬롯 17: 100 GOLD)
+        // 2. 권종별 출금 버튼 처리
         int withdrawAmount = 0;
-        if (slot == 15) withdrawAmount = 1;
-        else if (slot == 16) withdrawAmount = 10;
-        else if (slot == 17) withdrawAmount = 100;
+        if (slot == 14) withdrawAmount = 10;
+        else if (slot == 15) withdrawAmount = 100;
+        else if (slot == 16) withdrawAmount = 1_000;
+        else if (slot == 17) withdrawAmount = 10_000;
 
         if (withdrawAmount > 0) {
             int currentBalance = getBalance(player);
@@ -200,7 +188,7 @@ public class BankGuiListener implements Listener {
             }
 
             setBalance(player, currentBalance - withdrawAmount);
-            player.getInventory().addItem(createCashItem(withdrawAmount, 1));
+            player.getInventory().addItem(currencyItemFactory.createCashItem(withdrawAmount, 1));
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1f, 1.5f);
             player.sendMessage("§a[은행] §e" + df.format(withdrawAmount) + " GOLD§a를 출금했습니다. (남은 잔액: §f" + df.format(currentBalance - withdrawAmount) + " GOLD§a)");
             openBankGui(player);
